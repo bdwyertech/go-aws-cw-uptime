@@ -16,7 +16,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
+var OneShotFlag bool
+
 func init() {
+	flag.BoolVar(&OneShotFlag, "once", false, "Run only once")
+
 	if _, ok := os.LookupEnv("AWS_CW_UPTIME_DEBUG"); ok {
 		log.SetLevel(log.DebugLevel)
 		log.SetReportCaller(true)
@@ -87,6 +91,11 @@ func Run() {
 		if _, err := cw.PutMetricData(input); err != nil {
 			log.Fatal(err)
 		}
+
+		if OneShotFlag {
+			break
+		}
+
 		log.Debugf("Waiting %s before updating metric...", interval)
 		time.Sleep(interval)
 	}
