@@ -29,8 +29,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	log.Error(GetUptime())
-
 	// AWS Session
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config:            *aws.NewConfig().WithCredentialsChainVerboseErrors(true),
@@ -50,8 +48,6 @@ func main() {
 	instanceID := identity.InstanceID
 	sess.Config = sess.Config.WithRegion(identity.Region)
 
-	log.Error(instanceID)
-
 	cw := cloudwatch.New(sess)
 
 	input := &cloudwatch.PutMetricDataInput{
@@ -59,7 +55,7 @@ func main() {
 		MetricData: []*cloudwatch.MetricDatum{
 			&cloudwatch.MetricDatum{
 				MetricName: aws.String("Uptime"),
-				Unit:       aws.String("Count"),
+				Unit:       aws.String("Seconds"),
 				Value:      aws.Float64(GetUptime().Seconds()),
 				Dimensions: []*cloudwatch.Dimension{
 					&cloudwatch.Dimension{
