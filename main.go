@@ -5,6 +5,8 @@ package main
 import (
 	"flag"
 	"os"
+	"runtime"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -23,12 +25,19 @@ func init() {
 
 func main() {
 	flag.Parse()
-
 	if versionFlag {
 		showVersion()
 		os.Exit(0)
 	}
 
+	if runtime.GOOS == "windows" {
+		RunWindows()
+	} else {
+		Run()
+	}
+}
+
+func Run() {
 	// AWS Session
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config:            *aws.NewConfig().WithCredentialsChainVerboseErrors(true),
@@ -50,24 +59,35 @@ func main() {
 
 	cw := cloudwatch.New(sess)
 
-	input := &cloudwatch.PutMetricDataInput{
-		Namespace: aws.String("Custom"),
-		MetricData: []*cloudwatch.MetricDatum{
-			&cloudwatch.MetricDatum{
-				MetricName: aws.String("Uptime"),
-				Unit:       aws.String("Seconds"),
-				Value:      aws.Float64(GetUptime().Seconds()),
-				Dimensions: []*cloudwatch.Dimension{
-					&cloudwatch.Dimension{
-						Name:  aws.String("InstanceId"),
-						Value: aws.String(instanceID),
+	interval := 30 * time.Second
+	if durationString, ok := os.LookupEnv("AWS_CW_UPTIME_INTERVAL"); ok {
+		if interval, err = time.ParseDuration(durationString); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	for {
+		input := &cloudwatch.PutMetricDataInput{
+			Namespace: aws.String("Custom"),
+			MetricData: []*cloudwatch.MetricDatum{
+				&cloudwatch.MetricDatum{
+					MetricName: aws.String("Uptime"),
+					Unit:       aws.String("Seconds"),
+					Value:      aws.Float64(GetUptime().Seconds()),
+					Dimensions: []*cloudwatch.Dimension{
+						&cloudwatch.Dimension{
+							Name:  aws.String("InstanceId"),
+							Value: aws.String(instanceID),
+						},
 					},
 				},
 			},
-		},
-	}
+		}
 
-	if _, err := cw.PutMetricData(input); err != nil {
-		log.Error(err)
+		if _, err := cw.PutMetricData(input); err != nil {
+			log.Fatal(err)
+		}
+		log.Debugf("Waiting %s before updating metric...", interval)
+		time.Sleep(interval)
 	}
 }
