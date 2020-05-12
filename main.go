@@ -16,22 +16,24 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
-var OneShotFlag bool
+var DebugFlag, OneShotFlag bool
 
 func init() {
 	flag.BoolVar(&OneShotFlag, "once", false, "Run only once")
-
-	if _, ok := os.LookupEnv("AWS_CW_UPTIME_DEBUG"); ok {
-		log.SetLevel(log.DebugLevel)
-		log.SetReportCaller(true)
-	}
+	flag.BoolVar(&DebugFlag, "debug", false, "Enable debug logging")
 }
 
 func main() {
 	flag.Parse()
+
 	if versionFlag {
 		showVersion()
 		os.Exit(0)
+	}
+
+	if _, ok := os.LookupEnv("AWS_CW_UPTIME_DEBUG"); ok || DebugFlag {
+		log.SetLevel(log.DebugLevel)
+		log.SetReportCaller(true)
 	}
 
 	if runtime.GOOS == "windows" {
