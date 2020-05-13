@@ -16,11 +16,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
-var DebugFlag, OneShotFlag bool
+var Debug, OneShot bool
+
+var Interval time.Duration
 
 func init() {
-	flag.BoolVar(&OneShotFlag, "once", false, "Run only once")
-	flag.BoolVar(&DebugFlag, "debug", false, "Enable debug logging")
+	flag.BoolVar(&OneShot, "once", false, "Run only once")
+	flag.BoolVar(&Debug, "debug", false, "Enable debug logging")
+	flag.DurationVar(&Interval, "interval", 15*time.Minute, "Reporting interval for CloudWatch logs")
 }
 
 func main() {
@@ -31,7 +34,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if _, ok := os.LookupEnv("AWS_CW_UPTIME_DEBUG"); ok || DebugFlag {
+	if _, ok := os.LookupEnv("AWS_CW_UPTIME_DEBUG"); ok || Debug {
 		log.SetLevel(log.DebugLevel)
 		log.SetReportCaller(true)
 	}
@@ -65,21 +68,15 @@ func Run() {
 
 	cw := cloudwatch.New(sess)
 
-	interval := 30 * time.Second
-	if durationString, ok := os.LookupEnv("AWS_CW_UPTIME_INTERVAL"); ok {
-		if interval, err = time.ParseDuration(durationString); err != nil {
-			log.Fatal(err)
-		}
-	}
-
 	for {
 		input := &cloudwatch.PutMetricDataInput{
 			Namespace: aws.String("Custom"),
 			MetricData: []*cloudwatch.MetricDatum{
 				&cloudwatch.MetricDatum{
-					MetricName: aws.String("Uptime"),
-					Unit:       aws.String("Seconds"),
-					Value:      aws.Float64(GetUptime().Seconds()),
+					MetricName:        aws.String("Uptime"),
+					Unit:              aws.String("Seconds"),
+					Value:             aws.Float64(GetUptime().Seconds()),
+					StorageResolution: aws.Int64(int64(Interval.Seconds())),
 					Dimensions: []*cloudwatch.Dimension{
 						&cloudwatch.Dimension{
 							Name:  aws.String("InstanceId"),
@@ -94,11 +91,11 @@ func Run() {
 			log.Fatal(err)
 		}
 
-		if OneShotFlag {
+		if OneShot {
 			break
 		}
 
-		log.Debugf("Waiting %s before updating metric...", interval)
-		time.Sleep(interval)
+		log.Infof("Waiting %s before updating Uptime metric...", Interval)
+		time.Sleep(Interval)
 	}
 }
