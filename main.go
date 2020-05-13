@@ -73,10 +73,9 @@ func Run() {
 			Namespace: aws.String("Custom"),
 			MetricData: []*cloudwatch.MetricDatum{
 				&cloudwatch.MetricDatum{
-					MetricName:        aws.String("Uptime"),
-					Unit:              aws.String("Seconds"),
-					Value:             aws.Float64(GetUptime().Seconds()),
-					StorageResolution: aws.Int64(int64(Interval.Seconds())),
+					MetricName: aws.String("Uptime"),
+					Unit:       aws.String("Seconds"),
+					Value:      aws.Float64(GetUptime().Seconds()),
 					Dimensions: []*cloudwatch.Dimension{
 						&cloudwatch.Dimension{
 							Name:  aws.String("InstanceId"),
