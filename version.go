@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"runtime"
 )
 
 var versionFlag bool
@@ -25,4 +26,5 @@ func showVersion() {
 	fmt.Println("version:", ReleaseVer)
 	fmt.Println("commit:", GitCommit)
 	fmt.Println("date:", ReleaseDate)
+	fmt.Println("runtime:", runtime.Version())
 }
