@@ -1,7 +1,7 @@
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
 ## explicit
 github.com/StackExchange/wmi
-# github.com/aws/aws-sdk-go v1.30.25
+# github.com/aws/aws-sdk-go v1.32.13
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -45,12 +45,12 @@ github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
 # github.com/jmespath/go-jmespath v0.3.0
 github.com/jmespath/go-jmespath
-# github.com/kardianos/service v1.0.0
+# github.com/kardianos/service v1.1.0
 ## explicit
 github.com/kardianos/service
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
-# github.com/shirou/gopsutil v2.20.4+incompatible
+# github.com/shirou/gopsutil v2.20.6+incompatible
 ## explicit
 github.com/shirou/gopsutil/cpu
 github.com/shirou/gopsutil/host
