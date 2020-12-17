@@ -1,4 +1,5 @@
 # Encoding: UTF-8
+
 project_name: aws-cloudwatch-uptime
 
 before:
@@ -6,15 +7,19 @@ before:
     # - go mod tidy
     # - go generate ./...
 builds:
-  - main: .
-    env:
+  - env:
       - CGO_ENABLED=0
+      # - GOFLAGS=-mod=vendor
     goos:
       - windows
       - linux
       # - darwin
     goarch:
       - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
     flags:
       - -mod=vendor
     ldflags:
