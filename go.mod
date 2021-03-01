@@ -8,5 +8,5 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/kardianos/service v1.2.0
 	github.com/shirou/gopsutil v3.20.11+incompatible
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.8.0
 )
