@@ -7,6 +7,6 @@ require (
 	github.com/aws/aws-sdk-go v1.36.10
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/kardianos/service v1.2.0
-	github.com/shirou/gopsutil v3.20.11+incompatible
+	github.com/shirou/gopsutil v3.21.5+incompatible
 	github.com/sirupsen/logrus v1.7.0
 )
