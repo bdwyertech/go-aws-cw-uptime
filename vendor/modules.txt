@@ -1,7 +1,7 @@
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
 ## explicit
 github.com/StackExchange/wmi
-# github.com/aws/aws-sdk-go v1.36.10
+# github.com/aws/aws-sdk-go v1.36.18
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
