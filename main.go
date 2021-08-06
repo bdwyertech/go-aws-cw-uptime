@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 	"runtime"
@@ -10,10 +11,11 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	cw_types "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 )
 
 var Debug, OneShot bool
@@ -47,46 +49,46 @@ func main() {
 }
 
 func Run() {
-	// AWS Session
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		Config:            *aws.NewConfig().WithCredentialsChainVerboseErrors(true),
-		SharedConfigState: session.SharedConfigDisable,
-	}))
+	ctx := context.Background()
 
-	metadata := ec2metadata.New(sess)
+	cfgctx, cancel := context.WithTimeout(ctx, time.Duration(10*time.Second))
+	defer cancel()
 
-	if !metadata.Available() {
-		log.Fatal("EC2 Metadata is not available... Are we running on an EC2 instance?")
-	}
-
-	identity, err := metadata.GetInstanceIdentityDocument()
+	cfg, err := config.LoadDefaultConfig(cfgctx,
+		config.WithEC2IMDSRegion(),
+		config.WithSharedConfigFiles([]string{}),
+		config.WithSharedCredentialsFiles([]string{}),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	instanceID := identity.InstanceID
-	sess.Config = sess.Config.WithRegion(identity.Region)
 
-	cw := cloudwatch.New(sess)
+	metadata := imds.NewFromConfig(cfg)
+	identity, err := metadata.GetInstanceIdentityDocument(ctx, &imds.GetInstanceIdentityDocumentInput{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	cw := cloudwatch.NewFromConfig(cfg)
 
 	for {
 		input := &cloudwatch.PutMetricDataInput{
 			Namespace: aws.String("Custom"),
-			MetricData: []*cloudwatch.MetricDatum{
-				&cloudwatch.MetricDatum{
+			MetricData: []cw_types.MetricDatum{
+				cw_types.MetricDatum{
 					MetricName: aws.String("Uptime"),
-					Unit:       aws.String("Seconds"),
+					Unit:       cw_types.StandardUnitSeconds,
 					Value:      aws.Float64(GetUptime().Seconds()),
-					Dimensions: []*cloudwatch.Dimension{
-						&cloudwatch.Dimension{
+					Dimensions: []cw_types.Dimension{
+						cw_types.Dimension{
 							Name:  aws.String("InstanceId"),
-							Value: aws.String(instanceID),
+							Value: aws.String(identity.InstanceID),
 						},
 					},
 				},
 			},
 		}
 
-		if _, err := cw.PutMetricData(input); err != nil {
+		if _, err := cw.PutMetricData(ctx, input); err != nil {
 			log.Fatal(err)
 		}
 
