@@ -22,7 +22,7 @@ builds:
         goarch: arm64
     flags:
       - -mod=vendor
-      - -trimprefix
+      - -trimpath
     ldflags:
       - -s -w
       - -X main.GitCommit={{.ShortCommit}}
