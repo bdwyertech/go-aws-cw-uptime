@@ -63,7 +63,7 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	metadata := imds.NewFromConfig(cfg)
+	metadata := imds.New(imds.Options{})
 	identity, err := metadata.GetInstanceIdentityDocument(ctx, &imds.GetInstanceIdentityDocumentInput{})
 	if err != nil {
 		log.Fatal(err)
