@@ -76,7 +76,7 @@ github.com/jmespath/go-jmespath
 # github.com/kardianos/service v1.2.0
 ## explicit
 github.com/kardianos/service
-# github.com/shirou/gopsutil v3.21.8+incompatible
+# github.com/shirou/gopsutil v3.21.10+incompatible
 ## explicit
 github.com/shirou/gopsutil/cpu
 github.com/shirou/gopsutil/host
