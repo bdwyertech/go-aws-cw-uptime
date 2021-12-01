@@ -1,3 +1,29 @@
+# v1.12.0 (2021-11-19)
+
+* **Feature**: API client updated
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.11.0 (2021-11-12)
+
+* **Feature**: Service clients now support custom endpoints that have an initial URI path defined.
+* **Feature**: Waiters now have a `WaitForOutput` method, which can be used to retrieve the output of the successful wait operation. Thank you to [Andrew Haines](https://github.com/haines) for contributing this feature.
+
+# v1.10.0 (2021-11-06)
+
+* **Feature**: The SDK now supports configuration of FIPS and DualStack endpoints using environment variables, shared configuration, or programmatically.
+* **Feature**: Updated `github.com/aws/smithy-go` to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.9.0 (2021-10-21)
+
+* **Feature**: API client updated
+* **Feature**: Updated  to latest version
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.8.2 (2021-10-11)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.8.1 (2021-09-17)
 
 * **Dependency Update**: Updated to the latest SDK module versions
