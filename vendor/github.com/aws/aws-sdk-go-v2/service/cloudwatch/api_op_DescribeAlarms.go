@@ -18,7 +18,11 @@ import (
 )
 
 // Retrieves the specified alarms. You can filter the results by specifying a
-// prefix for the alarm name, the alarm state, or a prefix for any action.
+// prefix for the alarm name, the alarm state, or a prefix for any action. To use
+// this operation and return information about composite alarms, you must be signed
+// on with the cloudwatch:DescribeAlarms permission that is scoped to *. You can't
+// return information about composite alarms if your cloudwatch:DescribeAlarms
+// permission has a narrower scope.
 func (c *Client) DescribeAlarms(ctx context.Context, params *DescribeAlarmsInput, optFns ...func(*Options)) (*DescribeAlarmsOutput, error) {
 	if params == nil {
 		params = &DescribeAlarmsInput{}
@@ -219,12 +223,13 @@ func NewDescribeAlarmsPaginator(client DescribeAlarmsAPIClient, params *Describe
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *DescribeAlarmsPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next DescribeAlarms page.
@@ -251,7 +256,10 @@ func (p *DescribeAlarmsPaginator) NextPage(ctx context.Context, optFns ...func(*
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 
@@ -317,8 +325,16 @@ func NewAlarmExistsWaiter(client DescribeAlarmsAPIClient, optFns ...func(*AlarmE
 // maximum wait duration the waiter will wait. The maxWaitDur is required and must
 // be greater than zero.
 func (w *AlarmExistsWaiter) Wait(ctx context.Context, params *DescribeAlarmsInput, maxWaitDur time.Duration, optFns ...func(*AlarmExistsWaiterOptions)) error {
+	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
+	return err
+}
+
+// WaitForOutput calls the waiter function for AlarmExists waiter and returns the
+// output of the successful operation. The maxWaitDur is the maximum wait duration
+// the waiter will wait. The maxWaitDur is required and must be greater than zero.
+func (w *AlarmExistsWaiter) WaitForOutput(ctx context.Context, params *DescribeAlarmsInput, maxWaitDur time.Duration, optFns ...func(*AlarmExistsWaiterOptions)) (*DescribeAlarmsOutput, error) {
 	if maxWaitDur <= 0 {
-		return fmt.Errorf("maximum wait time for waiter must be greater than zero")
+		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
 	}
 
 	options := w.options
@@ -331,7 +347,7 @@ func (w *AlarmExistsWaiter) Wait(ctx context.Context, params *DescribeAlarmsInpu
 	}
 
 	if options.MinDelay > options.MaxDelay {
-		return fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
+		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
 	}
 
 	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
@@ -359,10 +375,10 @@ func (w *AlarmExistsWaiter) Wait(ctx context.Context, params *DescribeAlarmsInpu
 
 		retryable, err := options.Retryable(ctx, params, out, err)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !retryable {
-			return nil
+			return out, nil
 		}
 
 		remainingTime -= time.Since(start)
@@ -375,16 +391,16 @@ func (w *AlarmExistsWaiter) Wait(ctx context.Context, params *DescribeAlarmsInpu
 			attempt, options.MinDelay, options.MaxDelay, remainingTime,
 		)
 		if err != nil {
-			return fmt.Errorf("error computing waiter delay, %w", err)
+			return nil, fmt.Errorf("error computing waiter delay, %w", err)
 		}
 
 		remainingTime -= delay
 		// sleep for the delay amount before invoking a request
 		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
-			return fmt.Errorf("request cancelled while waiting, %w", err)
+			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
 		}
 	}
-	return fmt.Errorf("exceeded max wait time for AlarmExists waiter")
+	return nil, fmt.Errorf("exceeded max wait time for AlarmExists waiter")
 }
 
 func alarmExistsStateRetryable(ctx context.Context, input *DescribeAlarmsInput, output *DescribeAlarmsOutput, err error) (bool, error) {
@@ -473,8 +489,17 @@ func NewCompositeAlarmExistsWaiter(client DescribeAlarmsAPIClient, optFns ...fun
 // is the maximum wait duration the waiter will wait. The maxWaitDur is required
 // and must be greater than zero.
 func (w *CompositeAlarmExistsWaiter) Wait(ctx context.Context, params *DescribeAlarmsInput, maxWaitDur time.Duration, optFns ...func(*CompositeAlarmExistsWaiterOptions)) error {
+	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
+	return err
+}
+
+// WaitForOutput calls the waiter function for CompositeAlarmExists waiter and
+// returns the output of the successful operation. The maxWaitDur is the maximum
+// wait duration the waiter will wait. The maxWaitDur is required and must be
+// greater than zero.
+func (w *CompositeAlarmExistsWaiter) WaitForOutput(ctx context.Context, params *DescribeAlarmsInput, maxWaitDur time.Duration, optFns ...func(*CompositeAlarmExistsWaiterOptions)) (*DescribeAlarmsOutput, error) {
 	if maxWaitDur <= 0 {
-		return fmt.Errorf("maximum wait time for waiter must be greater than zero")
+		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
 	}
 
 	options := w.options
@@ -487,7 +512,7 @@ func (w *CompositeAlarmExistsWaiter) Wait(ctx context.Context, params *DescribeA
 	}
 
 	if options.MinDelay > options.MaxDelay {
-		return fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
+		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
 	}
 
 	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
@@ -515,10 +540,10 @@ func (w *CompositeAlarmExistsWaiter) Wait(ctx context.Context, params *DescribeA
 
 		retryable, err := options.Retryable(ctx, params, out, err)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !retryable {
-			return nil
+			return out, nil
 		}
 
 		remainingTime -= time.Since(start)
@@ -531,16 +556,16 @@ func (w *CompositeAlarmExistsWaiter) Wait(ctx context.Context, params *DescribeA
 			attempt, options.MinDelay, options.MaxDelay, remainingTime,
 		)
 		if err != nil {
-			return fmt.Errorf("error computing waiter delay, %w", err)
+			return nil, fmt.Errorf("error computing waiter delay, %w", err)
 		}
 
 		remainingTime -= delay
 		// sleep for the delay amount before invoking a request
 		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
-			return fmt.Errorf("request cancelled while waiting, %w", err)
+			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
 		}
 	}
-	return fmt.Errorf("exceeded max wait time for CompositeAlarmExists waiter")
+	return nil, fmt.Errorf("exceeded max wait time for CompositeAlarmExists waiter")
 }
 
 func compositeAlarmExistsStateRetryable(ctx context.Context, input *DescribeAlarmsInput, output *DescribeAlarmsOutput, err error) (bool, error) {
