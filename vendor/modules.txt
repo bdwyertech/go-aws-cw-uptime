@@ -73,7 +73,7 @@ github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/kardianos/service v1.2.0
+# github.com/kardianos/service v1.2.1
 ## explicit
 github.com/kardianos/service
 # github.com/shirou/gopsutil v3.21.8+incompatible
