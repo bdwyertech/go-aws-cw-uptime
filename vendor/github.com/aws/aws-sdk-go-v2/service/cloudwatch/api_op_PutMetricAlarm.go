@@ -27,10 +27,10 @@ import (
 // * The iam:CreateServiceLinkedRole to create an alarm with Systems
 // Manager OpsItem actions.
 //
-// The first time you create an alarm in the Management
-// Console, the CLI, or by using the PutMetricAlarm API, CloudWatch creates the
-// necessary service-linked role for you. The service-linked roles are called
-// AWSServiceRoleForCloudWatchEvents and
+// The first time you create an alarm in the Amazon Web
+// Services Management Console, the CLI, or by using the PutMetricAlarm API,
+// CloudWatch creates the necessary service-linked role for you. The service-linked
+// roles are called AWSServiceRoleForCloudWatchEvents and
 // AWSServiceRoleForCloudWatchAlarms_ActionSSM. For more information, see Amazon
 // Web Services service-linked role
 // (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html#iam-term-service-linked-role).
@@ -243,7 +243,10 @@ type PutMetricAlarmInput struct {
 	// omitted, the default behavior of missing is used. For more information, see
 	// Configuring How CloudWatch Alarms Treats Missing Data
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html#alarms-and-missing-data).
-	// Valid Values: breaching | notBreaching | ignore | missing
+	// Valid Values: breaching | notBreaching | ignore | missing Alarms that evaluate
+	// metrics in the AWS/DynamoDB namespace always ignore missing data even if you
+	// choose a different option for TreatMissingData. When an AWS/DynamoDB metric has
+	// missing data, alarms that evaluate that metric remain in their current state.
 	TreatMissingData *string
 
 	// The unit of measure for the statistic. For example, the units for the Amazon EC2

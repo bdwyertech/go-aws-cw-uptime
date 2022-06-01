@@ -16,7 +16,11 @@ import (
 // Retrieves the history for the specified alarm. You can filter the results by
 // date range or item type. If an alarm name is not specified, the histories for
 // either all metric alarms or all composite alarms are returned. CloudWatch
-// retains the history of an alarm even if you delete the alarm.
+// retains the history of an alarm even if you delete the alarm. To use this
+// operation and return information about a composite alarm, you must be signed on
+// with the cloudwatch:DescribeAlarmHistory permission that is scoped to *. You
+// can't return information about composite alarms if your
+// cloudwatch:DescribeAlarmHistory permission has a narrower scope.
 func (c *Client) DescribeAlarmHistory(ctx context.Context, params *DescribeAlarmHistoryInput, optFns ...func(*Options)) (*DescribeAlarmHistoryOutput, error) {
 	if params == nil {
 		params = &DescribeAlarmHistoryInput{}
@@ -188,12 +192,13 @@ func NewDescribeAlarmHistoryPaginator(client DescribeAlarmHistoryAPIClient, para
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *DescribeAlarmHistoryPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next DescribeAlarmHistory page.
@@ -220,7 +225,10 @@ func (p *DescribeAlarmHistoryPaginator) NextPage(ctx context.Context, optFns ...
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 
