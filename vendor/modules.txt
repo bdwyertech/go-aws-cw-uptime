@@ -84,7 +84,7 @@ github.com/shirou/gopsutil/internal/common
 github.com/shirou/gopsutil/mem
 github.com/shirou/gopsutil/net
 github.com/shirou/gopsutil/process
-# github.com/sirupsen/logrus v1.8.1
+# github.com/sirupsen/logrus v1.9.0
 ## explicit
 github.com/sirupsen/logrus
 # github.com/tklauser/go-sysconf v0.3.9
@@ -92,7 +92,7 @@ github.com/sirupsen/logrus
 github.com/tklauser/go-sysconf
 # github.com/tklauser/numcpus v0.3.0
 github.com/tklauser/numcpus
-# golang.org/x/sys v0.0.0-20210930141918-969570ce7c6c
+# golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
