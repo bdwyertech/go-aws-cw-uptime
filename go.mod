@@ -4,9 +4,9 @@ go 1.16
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.9.1
-	github.com/aws/aws-sdk-go-v2/config v1.8.2
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.5.1
+	github.com/aws/aws-sdk-go-v2 v1.16.7
+	github.com/aws/aws-sdk-go-v2/config v1.15.14
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.8
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.8.1
 	github.com/kardianos/service v1.2.0
 	github.com/shirou/gopsutil v3.21.8+incompatible
