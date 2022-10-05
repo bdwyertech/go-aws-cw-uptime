@@ -74,12 +74,12 @@ func Run() {
 		input := &cloudwatch.PutMetricDataInput{
 			Namespace: aws.String("Custom"),
 			MetricData: []cw_types.MetricDatum{
-				cw_types.MetricDatum{
+				{
 					MetricName: aws.String("Uptime"),
 					Unit:       cw_types.StandardUnitSeconds,
 					Value:      aws.Float64(GetUptime().Seconds()),
 					Dimensions: []cw_types.Dimension{
-						cw_types.Dimension{
+						{
 							Name:  aws.String("InstanceId"),
 							Value: aws.String(identity.InstanceID),
 						},

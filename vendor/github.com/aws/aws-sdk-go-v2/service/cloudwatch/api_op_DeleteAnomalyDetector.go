@@ -11,7 +11,11 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Deletes the specified anomaly detection model from your account.
+// Deletes the specified anomaly detection model from your account. For more
+// information about how to delete an anomaly detection model, see Deleting an
+// anomaly detection model
+// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Anomaly_Detection_Alarm.html#Delete_Anomaly_Detection_Model)
+// in the CloudWatch User Guide.
 func (c *Client) DeleteAnomalyDetector(ctx context.Context, params *DeleteAnomalyDetectorInput, optFns ...func(*Options)) (*DeleteAnomalyDetectorOutput, error) {
 	if params == nil {
 		params = &DeleteAnomalyDetectorInput{}
@@ -29,23 +33,65 @@ func (c *Client) DeleteAnomalyDetector(ctx context.Context, params *DeleteAnomal
 
 type DeleteAnomalyDetectorInput struct {
 
+	// The metric dimensions associated with the anomaly detection model to delete.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.
+	Dimensions []types.Dimension
+
+	// The metric math anomaly detector to be deleted. When using
+	// MetricMathAnomalyDetector, you cannot include following parameters in the same
+	// operation:
+	//
+	// * Dimensions,
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// SingleMetricAnomalyDetector parameters of DeleteAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the metric math anomaly detector attributes as part of the
+	// MetricMathAnomalyDetector property.
+	MetricMathAnomalyDetector *types.MetricMathAnomalyDetector
+
 	// The metric name associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	MetricName *string
 
 	// The namespace associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	Namespace *string
+
+	// A single metric anomaly detector to be deleted. When using
+	// SingleMetricAnomalyDetector, you cannot include the following parameters in the
+	// same operation:
+	//
+	// * Dimensions,
+	//
+	// * MetricName
+	//
+	// * Namespace
+	//
+	// * Stat
+	//
+	// * the
+	// MetricMathAnomalyDetector parameters of DeleteAnomalyDetectorInput
+	//
+	// Instead,
+	// specify the single metric anomaly detector attributes as part of the
+	// SingleMetricAnomalyDetector property.
+	SingleMetricAnomalyDetector *types.SingleMetricAnomalyDetector
 
 	// The statistic associated with the anomaly detection model to delete.
 	//
-	// This member is required.
+	// Deprecated: Use SingleMetricAnomalyDetector.
 	Stat *string
-
-	// The metric dimensions associated with the anomaly detection model to delete.
-	Dimensions []types.Dimension
 
 	noSmithyDocumentSerde
 }

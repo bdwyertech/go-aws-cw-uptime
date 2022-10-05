@@ -4,6 +4,7 @@ package cloudwatch
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
@@ -11,9 +12,12 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Lists the anomaly detection models that you have created in your account. You
-// can list all models in your account or filter the results to only the models
-// that are related to a certain namespace, metric name, or metric dimension.
+// Lists the anomaly detection models that you have created in your account. For
+// single metric anomaly detectors, you can list all of the models in your account
+// or filter the results to only the models that are related to a certain
+// namespace, metric name, or metric dimension. For metric math anomaly detectors,
+// you can list them by adding METRIC_MATH to the AnomalyDetectorTypes array. This
+// will return all metric math anomaly detectors in your account.
 func (c *Client) DescribeAnomalyDetectors(ctx context.Context, params *DescribeAnomalyDetectorsInput, optFns ...func(*Options)) (*DescribeAnomalyDetectorsOutput, error) {
 	if params == nil {
 		params = &DescribeAnomalyDetectorsInput{}
@@ -30,6 +34,10 @@ func (c *Client) DescribeAnomalyDetectors(ctx context.Context, params *DescribeA
 }
 
 type DescribeAnomalyDetectorsInput struct {
+
+	// The anomaly detector types to request when using DescribeAnomalyDetectorsInput.
+	// If empty, defaults to SINGLE_METRIC.
+	AnomalyDetectorTypes []types.AnomalyDetectorType
 
 	// Limits the results to only the anomaly detection models that are associated with
 	// the specified metric dimensions. If there are multiple metrics that have these
@@ -133,6 +141,100 @@ func (c *Client) addOperationDescribeAnomalyDetectorsMiddlewares(stack *middlewa
 		return err
 	}
 	return nil
+}
+
+// DescribeAnomalyDetectorsAPIClient is a client that implements the
+// DescribeAnomalyDetectors operation.
+type DescribeAnomalyDetectorsAPIClient interface {
+	DescribeAnomalyDetectors(context.Context, *DescribeAnomalyDetectorsInput, ...func(*Options)) (*DescribeAnomalyDetectorsOutput, error)
+}
+
+var _ DescribeAnomalyDetectorsAPIClient = (*Client)(nil)
+
+// DescribeAnomalyDetectorsPaginatorOptions is the paginator options for
+// DescribeAnomalyDetectors
+type DescribeAnomalyDetectorsPaginatorOptions struct {
+	// The maximum number of results to return in one operation. The maximum value that
+	// you can specify is 100. To retrieve the remaining results, make another call
+	// with the returned NextToken value.
+	Limit int32
+
+	// Set to true if pagination should stop if the service returns a pagination token
+	// that matches the most recent token provided to the service.
+	StopOnDuplicateToken bool
+}
+
+// DescribeAnomalyDetectorsPaginator is a paginator for DescribeAnomalyDetectors
+type DescribeAnomalyDetectorsPaginator struct {
+	options   DescribeAnomalyDetectorsPaginatorOptions
+	client    DescribeAnomalyDetectorsAPIClient
+	params    *DescribeAnomalyDetectorsInput
+	nextToken *string
+	firstPage bool
+}
+
+// NewDescribeAnomalyDetectorsPaginator returns a new
+// DescribeAnomalyDetectorsPaginator
+func NewDescribeAnomalyDetectorsPaginator(client DescribeAnomalyDetectorsAPIClient, params *DescribeAnomalyDetectorsInput, optFns ...func(*DescribeAnomalyDetectorsPaginatorOptions)) *DescribeAnomalyDetectorsPaginator {
+	if params == nil {
+		params = &DescribeAnomalyDetectorsInput{}
+	}
+
+	options := DescribeAnomalyDetectorsPaginatorOptions{}
+	if params.MaxResults != nil {
+		options.Limit = *params.MaxResults
+	}
+
+	for _, fn := range optFns {
+		fn(&options)
+	}
+
+	return &DescribeAnomalyDetectorsPaginator{
+		options:   options,
+		client:    client,
+		params:    params,
+		firstPage: true,
+		nextToken: params.NextToken,
+	}
+}
+
+// HasMorePages returns a boolean indicating whether more pages are available
+func (p *DescribeAnomalyDetectorsPaginator) HasMorePages() bool {
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
+}
+
+// NextPage retrieves the next DescribeAnomalyDetectors page.
+func (p *DescribeAnomalyDetectorsPaginator) NextPage(ctx context.Context, optFns ...func(*Options)) (*DescribeAnomalyDetectorsOutput, error) {
+	if !p.HasMorePages() {
+		return nil, fmt.Errorf("no more pages available")
+	}
+
+	params := *p.params
+	params.NextToken = p.nextToken
+
+	var limit *int32
+	if p.options.Limit > 0 {
+		limit = &p.options.Limit
+	}
+	params.MaxResults = limit
+
+	result, err := p.client.DescribeAnomalyDetectors(ctx, &params, optFns...)
+	if err != nil {
+		return nil, err
+	}
+	p.firstPage = false
+
+	prevToken := p.nextToken
+	p.nextToken = result.NextToken
+
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
+		p.nextToken = nil
+	}
+
+	return result, nil
 }
 
 func newServiceMetadataMiddleware_opDescribeAnomalyDetectors(region string) *awsmiddleware.RegisterServiceMetadata {

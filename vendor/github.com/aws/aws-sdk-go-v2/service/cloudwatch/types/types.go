@@ -31,9 +31,9 @@ type AlarmHistoryItem struct {
 	noSmithyDocumentSerde
 }
 
-// An anomaly detection model associated with a particular CloudWatch metric and
-// statistic. You can use the model to display a band of expected normal values
-// when the metric is graphed.
+// An anomaly detection model associated with a particular CloudWatch metric,
+// statistic, or metric math expression. You can use the model to display a band of
+// expected, normal values when the metric is graphed.
 type AnomalyDetector struct {
 
 	// The configuration specifies details about how the anomaly detection model is to
@@ -42,15 +42,29 @@ type AnomalyDetector struct {
 	Configuration *AnomalyDetectorConfiguration
 
 	// The metric dimensions associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Dimensions property.
 	Dimensions []Dimension
 
+	// The CloudWatch metric math expression for this anomaly detector.
+	MetricMathAnomalyDetector *MetricMathAnomalyDetector
+
 	// The name of the metric associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.MetricName property.
 	MetricName *string
 
 	// The namespace of the metric associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Namespace property.
 	Namespace *string
 
+	// The CloudWatch metric and statistic for this anomaly detector.
+	SingleMetricAnomalyDetector *SingleMetricAnomalyDetector
+
 	// The statistic associated with the anomaly detection model.
+	//
+	// Deprecated: Use SingleMetricAnomalyDetector.Stat property.
 	Stat *string
 
 	// The current status of the anomaly detector's training. The possible values are
@@ -87,6 +101,37 @@ type CompositeAlarm struct {
 	// state.
 	ActionsEnabled *bool
 
+	// When the value is ALARM, it means that the actions are suppressed because the
+	// suppressor alarm is in ALARM When the value is WaitPeriod, it means that the
+	// actions are suppressed because the composite alarm is waiting for the suppressor
+	// alarm to go into into the ALARM state. The maximum waiting time is as specified
+	// in ActionsSuppressorWaitPeriod. After this time, the composite alarm performs
+	// its actions. When the value is ExtensionPeriod, it means that the actions are
+	// suppressed because the composite alarm is waiting after the suppressor alarm
+	// went out of the ALARM state. The maximum waiting time is as specified in
+	// ActionsSuppressorExtensionPeriod. After this time, the composite alarm performs
+	// its actions.
+	ActionsSuppressedBy ActionsSuppressedBy
+
+	// Captures the reason for action suppression.
+	ActionsSuppressedReason *string
+
+	// Actions will be suppressed if the suppressor alarm is in the ALARM state.
+	// ActionsSuppressor can be an AlarmName or an Amazon Resource Name (ARN) from an
+	// existing alarm.
+	ActionsSuppressor *string
+
+	// The maximum time in seconds that the composite alarm waits after suppressor
+	// alarm goes out of the ALARM state. After this time, the composite alarm performs
+	// its actions. ExtensionPeriod is required only when ActionsSuppressor is
+	// specified.
+	ActionsSuppressorExtensionPeriod *int32
+
+	// The maximum time in seconds that the composite alarm waits for the suppressor
+	// alarm to go into the ALARM state. After this time, the composite alarm performs
+	// its actions. WaitPeriod is required only when ActionsSuppressor is specified.
+	ActionsSuppressorWaitPeriod *int32
+
 	// The actions to execute when this alarm transitions to the ALARM state from any
 	// other state. Each action is specified as an Amazon Resource Name (ARN).
 	AlarmActions []string
@@ -121,7 +166,10 @@ type CompositeAlarm struct {
 	// An explanation for the alarm state, in JSON format.
 	StateReasonData *string
 
-	// The time stamp of the last update to the alarm state.
+	// The timestamp of the last change to the alarm's StateValue.
+	StateTransitionedTimestamp *time.Time
+
+	// Tracks the timestamp of any state update, even if StateValue doesn't change.
 	StateUpdatedTimestamp *time.Time
 
 	// The state value for the alarm.
@@ -193,14 +241,17 @@ type Datapoint struct {
 	noSmithyDocumentSerde
 }
 
-// A dimension is a name/value pair that is part of the identity of a metric. You
-// can assign up to 10 dimensions to a metric. Because dimensions are part of the
-// unique identifier for a metric, whenever you add a unique name/value pair to one
-// of your metrics, you are creating a new variation of that metric.
+// A dimension is a name/value pair that is part of the identity of a metric.
+// Because dimensions are part of the unique identifier for a metric, whenever you
+// add a unique name/value pair to one of your metrics, you are creating a new
+// variation of that metric. For example, many Amazon EC2 metrics publish
+// InstanceId as a dimension name, and the actual instance ID as the value for that
+// dimension. You can assign up to 30 dimensions to a metric.
 type Dimension struct {
 
-	// The name of the dimension. Dimension names must contain only ASCII characters
-	// and must include at least one non-whitespace character.
+	// The name of the dimension. Dimension names must contain only ASCII characters,
+	// must include at least one non-whitespace character, and cannot start with a
+	// colon (:).
 	//
 	// This member is required.
 	Name *string
@@ -228,7 +279,11 @@ type DimensionFilter struct {
 	noSmithyDocumentSerde
 }
 
-// This structure contains the definition for a Contributor Insights rule.
+// This structure contains the definition for a Contributor Insights rule. For more
+// information about this rule, see Using Constributor Insights to analyze
+// high-cardinality data
+// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContributorInsights.html)
+// in the Amazon CloudWatch User Guide.
 type InsightRule struct {
 
 	// The definition of the rule, as a JSON object. The definition contains the
@@ -246,7 +301,7 @@ type InsightRule struct {
 	Name *string
 
 	// For rules that you create, this is always {"Name": "CloudWatchLogRule",
-	// "Version": 1}. For built-in rules, this is {"Name": "ServiceLogRule", "Version":
+	// "Version": 1}. For managed rules, this is {"Name": "ServiceLogRule", "Version":
 	// 1}
 	//
 	// This member is required.
@@ -256,6 +311,9 @@ type InsightRule struct {
 	//
 	// This member is required.
 	State *string
+
+	// An optional built-in rule that Amazon Web Services manages.
+	ManagedRule bool
 
 	noSmithyDocumentSerde
 }
@@ -371,6 +429,73 @@ type LabelOptions struct {
 	// example, +0130 indicates a time zone that is 1 hour and 30 minutes ahead of UTC.
 	// The default is +0000.
 	Timezone *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains the information that's required to enable a managed Contributor
+// Insights rule for an Amazon Web Services resource.
+type ManagedRule struct {
+
+	// The ARN of an Amazon Web Services resource that has managed Contributor Insights
+	// rules.
+	//
+	// This member is required.
+	ResourceARN *string
+
+	// The template name for the managed Contributor Insights rule, as returned by
+	// ListManagedInsightRules.
+	//
+	// This member is required.
+	TemplateName *string
+
+	// A list of key-value pairs that you can associate with a managed Contributor
+	// Insights rule. You can associate as many as 50 tags with a rule. Tags can help
+	// you organize and categorize your resources. You also can use them to scope user
+	// permissions by granting a user permission to access or change only the resources
+	// that have certain tag values. To associate tags with a rule, you must have the
+	// cloudwatch:TagResource permission in addition to the cloudwatch:PutInsightRule
+	// permission. If you are using this operation to update an existing Contributor
+	// Insights rule, any tags that you specify in this parameter are ignored. To
+	// change the tags of an existing rule, use TagResource.
+	Tags []Tag
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about managed Contributor Insights rules, as returned by
+// ListManagedInsightRules.
+type ManagedRuleDescription struct {
+
+	// If a managed rule is enabled, this is the ARN for the related Amazon Web
+	// Services resource.
+	ResourceARN *string
+
+	// Describes the state of a managed rule. If present, it contains information about
+	// the Contributor Insights rule that contains information about the related Amazon
+	// Web Services resource.
+	RuleState *ManagedRuleState
+
+	// The template name for the managed rule. Used to enable managed rules using
+	// PutManagedInsightRules.
+	TemplateName *string
+
+	noSmithyDocumentSerde
+}
+
+// The status of a managed Contributor Insights rule.
+type ManagedRuleState struct {
+
+	// The name of the Contributor Insights rule that contains data for the specified
+	// Amazon Web Services resource.
+	//
+	// This member is required.
+	RuleName *string
+
+	// Indicates whether the rule is enabled or disabled.
+	//
+	// This member is required.
+	State *string
 
 	noSmithyDocumentSerde
 }
@@ -500,8 +625,11 @@ type MetricAlarm struct {
 	// ANOMALY_DETECTION_BAND function used as the threshold for the alarm.
 	ThresholdMetricId *string
 
-	// Sets how this alarm is to handle missing data points. If this parameter is
-	// omitted, the default behavior of missing is used.
+	// Sets how this alarm is to handle missing data points. The valid values are
+	// breaching, notBreaching, ignore, and missing. For more information, see
+	// Configuring how CloudWatch alarms treat missing data
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html#alarms-and-missing-data).
+	// If this parameter is omitted, the default behavior of missing is used.
 	TreatMissingData *string
 
 	// The unit of the metric associated with the alarm.
@@ -513,11 +641,11 @@ type MetricAlarm struct {
 // This structure is used in both GetMetricData and PutMetricAlarm. The supported
 // use of this structure is different for those two operations. When used in
 // GetMetricData, it indicates the metric data to return, and whether this call is
-// just retrieving a batch set of data for one metric, or is performing a math
-// expression on metric data. A single GetMetricData call can include up to 500
-// MetricDataQuery structures. When used in PutMetricAlarm, it enables you to
-// create an alarm based on a metric math expression. Each MetricDataQuery in the
-// array specifies either a metric to retrieve, or a math expression to be
+// just retrieving a batch set of data for one metric, or is performing a Metrics
+// Insights query or a math expression. A single GetMetricData call can include up
+// to 500 MetricDataQuery structures. When used in PutMetricAlarm, it enables you
+// to create an alarm based on a metric math expression. Each MetricDataQuery in
+// the array specifies either a metric to retrieve, or a math expression to be
 // performed on retrieved metrics. A single PutMetricAlarm call can include up to
 // 20 MetricDataQuery structures in the array. The 20 structures can include as
 // many as 10 structures that contain a MetricStat parameter to retrieve a metric,
@@ -547,11 +675,14 @@ type MetricDataQuery struct {
 	// GetMetricData operations.
 	AccountId *string
 
-	// The math expression to be performed on the returned data, if this object is
-	// performing a math expression. This expression can use the Id of the other
-	// metrics to refer to those metrics, and can also use the Id of other expressions
-	// to use the result of those expressions. For more information about metric math
-	// expressions, see Metric Math Syntax and Functions
+	// This field can contain either a Metrics Insights query, or a metric math
+	// expression to be performed on the returned data. For more information about
+	// Metrics Insights queries, see Metrics Insights query components and syntax
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-metrics-insights-querylanguage)
+	// in the Amazon CloudWatch User Guide. A math expression can use the Id of the
+	// other metrics or queries to refer to those metrics, and can also use the Id of
+	// other expressions to use the result of those expressions. For more information
+	// about metric math expressions, see Metric Math Syntax and Functions
 	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/using-metric-math.html#metric-math-syntax)
 	// in the Amazon CloudWatch User Guide. Within each MetricDataQuery object, you
 	// must specify either Expression or MetricStat but not both.
@@ -688,6 +819,23 @@ type MetricDatum struct {
 	noSmithyDocumentSerde
 }
 
+// Indicates the CloudWatch math expression that provides the time series the
+// anomaly detector uses as input. The designated math expression must return a
+// single time series.
+type MetricMathAnomalyDetector struct {
+
+	// An array of metric data query structures that enables you to create an anomaly
+	// detector based on the result of a metric math expression. Each item in
+	// MetricDataQueries gets a metric or performs a math expression. One item in
+	// MetricDataQueries is the expression that provides the time series that the
+	// anomaly detector uses as input. Designate the expression by setting ReturnData
+	// to True for this object in the array. For all other expressions and metrics, set
+	// ReturnData to False. The designated expression must return a single time series.
+	MetricDataQueries []MetricDataQuery
+
+	noSmithyDocumentSerde
+}
+
 // This structure defines the metric to be returned, along with the statistics,
 // period, and units.
 type MetricStat struct {
@@ -776,6 +924,55 @@ type MetricStreamFilter struct {
 	noSmithyDocumentSerde
 }
 
+// By default, a metric stream always sends the MAX, MIN, SUM, and SAMPLECOUNT
+// statistics for each metric that is streamed. This structure contains information
+// for one metric that includes additional statistics in the stream. For more
+// information about statistics, see CloudWatch, listed in  CloudWatch statistics
+// definitions
+// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Statistics-definitions.html.html).
+type MetricStreamStatisticsConfiguration struct {
+
+	// The list of additional statistics that are to be streamed for the metrics listed
+	// in the IncludeMetrics array in this structure. This list can include as many as
+	// 20 statistics. If the OutputFormat for the stream is opentelemetry0.7, the only
+	// valid values are p??  percentile statistics such as p90, p99 and so on. If the
+	// OutputFormat for the stream is json, the valid values include the abbreviations
+	// for all of the statistics listed in  CloudWatch statistics definitions
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Statistics-definitions.html.html).
+	// For example, this includes tm98, wm90, PR(:300), and so on.
+	//
+	// This member is required.
+	AdditionalStatistics []string
+
+	// An array of metric name and namespace pairs that stream the additional
+	// statistics listed in the value of the AdditionalStatistics parameter. There can
+	// be as many as 100 pairs in the array. All metrics that match the combination of
+	// metric name and namespace will be streamed with the additional statistics, no
+	// matter their dimensions.
+	//
+	// This member is required.
+	IncludeMetrics []MetricStreamStatisticsMetric
+
+	noSmithyDocumentSerde
+}
+
+// This object contains the information for one metric that is to be streamed with
+// additional statistics.
+type MetricStreamStatisticsMetric struct {
+
+	// The name of the metric.
+	//
+	// This member is required.
+	MetricName *string
+
+	// The namespace of the metric.
+	//
+	// This member is required.
+	Namespace *string
+
+	noSmithyDocumentSerde
+}
+
 // This array is empty if the API operation was successful for all the rules
 // specified in the request. If the operation could not process one of the rules,
 // the following data is returned for each of those rules.
@@ -811,6 +1008,25 @@ type Range struct {
 	//
 	// This member is required.
 	StartTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
+// Designates the CloudWatch metric and statistic that provides the time series the
+// anomaly detector uses as input.
+type SingleMetricAnomalyDetector struct {
+
+	// The metric dimensions to create the anomaly detection model for.
+	Dimensions []Dimension
+
+	// The name of the metric to create the anomaly detection model for.
+	MetricName *string
+
+	// The namespace of the metric to create the anomaly detection model for.
+	Namespace *string
+
+	// The statistic to use for the metric and anomaly detection model.
+	Stat *string
 
 	noSmithyDocumentSerde
 }
