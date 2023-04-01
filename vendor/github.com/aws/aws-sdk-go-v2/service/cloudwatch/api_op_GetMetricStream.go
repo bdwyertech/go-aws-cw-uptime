@@ -52,13 +52,18 @@ type GetMetricStreamOutput struct {
 	// stream.
 	ExcludeFilters []types.MetricStreamFilter
 
-	// The ARN of the Amazon Kinesis Firehose delivery stream that is used by this
+	// The ARN of the Amazon Kinesis Data Firehose delivery stream that is used by this
 	// metric stream.
 	FirehoseArn *string
 
 	// If this array of metric namespaces is present, then these namespaces are the
 	// only metric namespaces that are streamed by this metric stream.
 	IncludeFilters []types.MetricStreamFilter
+
+	// If this is true and this metric stream is in a monitoring account, then the
+	// stream includes metrics from source accounts that the monitoring account is
+	// linked to.
+	IncludeLinkedAccountsMetrics *bool
 
 	// The date of the most recent update to the metric stream's configuration.
 	LastUpdateDate *time.Time
