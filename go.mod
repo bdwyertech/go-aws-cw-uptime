@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6
-	github.com/kardianos/service v1.2.1
+	github.com/kardianos/service v1.2.2
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec
