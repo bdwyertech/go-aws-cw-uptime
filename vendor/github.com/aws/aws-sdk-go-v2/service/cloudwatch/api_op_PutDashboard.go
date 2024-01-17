@@ -4,6 +4,7 @@ package cloudwatch
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
@@ -18,9 +19,9 @@ import (
 // copy an existing dashboard. To copy an existing dashboard using the console, you
 // can load the dashboard and then use the View/edit source command in the Actions
 // menu to display the JSON block for that dashboard. Another way to copy a
-// dashboard is to use GetDashboard, and then use the data returned within
-// DashboardBody as the template for the new dashboard when you call PutDashboard.
-// When you create a dashboard with PutDashboard, a good practice is to add a text
+// dashboard is to use GetDashboard , and then use the data returned within
+// DashboardBody as the template for the new dashboard when you call PutDashboard .
+// When you create a dashboard with PutDashboard , a good practice is to add a text
 // widget at the top of the dashboard with a message that the dashboard was created
 // by script and should not be changed in the console. This message could also
 // point console users to the location of the DashboardBody script or the
@@ -45,8 +46,8 @@ type PutDashboardInput struct {
 	// The detailed information about the dashboard in JSON format, including the
 	// widgets to include and their location on the dashboard. This parameter is
 	// required. For more information about the syntax, see Dashboard Body Structure
-	// and Syntax
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html).
+	// and Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html)
+	// .
 	//
 	// This member is required.
 	DashboardBody *string
@@ -78,12 +79,22 @@ type PutDashboardOutput struct {
 }
 
 func (c *Client) addOperationPutDashboardMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutDashboard{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpPutDashboard{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PutDashboard"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -104,16 +115,13 @@ func (c *Client) addOperationPutDashboardMiddlewares(stack *middleware.Stack, op
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -122,10 +130,16 @@ func (c *Client) addOperationPutDashboardMiddlewares(stack *middleware.Stack, op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpPutDashboardValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutDashboard(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -137,6 +151,9 @@ func (c *Client) addOperationPutDashboardMiddlewares(stack *middleware.Stack, op
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -144,7 +161,6 @@ func newServiceMetadataMiddleware_opPutDashboard(region string) *awsmiddleware.R
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "monitoring",
 		OperationName: "PutDashboard",
 	}
 }

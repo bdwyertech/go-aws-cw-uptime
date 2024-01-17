@@ -4,6 +4,7 @@ package cloudwatch
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
@@ -13,8 +14,8 @@ import (
 
 // Creates an anomaly detection model for a CloudWatch metric. You can use the
 // model to display a band of expected normal values when the metric is graphed.
-// For more information, see CloudWatch Anomaly Detection
-// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html).
+// For more information, see CloudWatch Anomaly Detection (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html)
+// .
 func (c *Client) PutAnomalyDetector(ctx context.Context, params *PutAnomalyDetectorInput, optFns ...func(*Options)) (*PutAnomalyDetectorOutput, error) {
 	if params == nil {
 		params = &PutAnomalyDetectorInput{}
@@ -44,23 +45,15 @@ type PutAnomalyDetectorInput struct {
 	Dimensions []types.Dimension
 
 	// The metric math anomaly detector to be created. When using
-	// MetricMathAnomalyDetector, you cannot include the following parameters in the
+	// MetricMathAnomalyDetector , you cannot include the following parameters in the
 	// same operation:
-	//
-	// * Dimensions
-	//
-	// * MetricName
-	//
-	// * Namespace
-	//
-	// * Stat
-	//
-	// * the
-	// SingleMetricAnomalyDetector parameters of PutAnomalyDetectorInput
-	//
-	// Instead,
-	// specify the metric math anomaly detector attributes as part of the property
-	// MetricMathAnomalyDetector.
+	//   - Dimensions
+	//   - MetricName
+	//   - Namespace
+	//   - Stat
+	//   - the SingleMetricAnomalyDetector parameters of PutAnomalyDetectorInput
+	// Instead, specify the metric math anomaly detector attributes as part of the
+	// property MetricMathAnomalyDetector .
 	MetricMathAnomalyDetector *types.MetricMathAnomalyDetector
 
 	// The name of the metric to create the anomaly detection model for.
@@ -74,23 +67,15 @@ type PutAnomalyDetectorInput struct {
 	Namespace *string
 
 	// A single metric anomaly detector to be created. When using
-	// SingleMetricAnomalyDetector, you cannot include the following parameters in the
+	// SingleMetricAnomalyDetector , you cannot include the following parameters in the
 	// same operation:
-	//
-	// * Dimensions
-	//
-	// * MetricName
-	//
-	// * Namespace
-	//
-	// * Stat
-	//
-	// * the
-	// MetricMatchAnomalyDetector parameters of PutAnomalyDetectorInput
-	//
-	// Instead,
-	// specify the single metric anomaly detector attributes as part of the property
-	// SingleMetricAnomalyDetector.
+	//   - Dimensions
+	//   - MetricName
+	//   - Namespace
+	//   - Stat
+	//   - the MetricMatchAnomalyDetector parameters of PutAnomalyDetectorInput
+	// Instead, specify the single metric anomaly detector attributes as part of the
+	// property SingleMetricAnomalyDetector .
 	SingleMetricAnomalyDetector *types.SingleMetricAnomalyDetector
 
 	// The statistic to use for the metric and the anomaly detection model.
@@ -109,12 +94,22 @@ type PutAnomalyDetectorOutput struct {
 }
 
 func (c *Client) addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpPutAnomalyDetector{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpPutAnomalyDetector{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PutAnomalyDetector"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -135,16 +130,13 @@ func (c *Client) addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Sta
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -153,10 +145,16 @@ func (c *Client) addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Sta
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpPutAnomalyDetectorValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutAnomalyDetector(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -168,6 +166,9 @@ func (c *Client) addOperationPutAnomalyDetectorMiddlewares(stack *middleware.Sta
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -175,7 +176,6 @@ func newServiceMetadataMiddleware_opPutAnomalyDetector(region string) *awsmiddle
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "monitoring",
 		OperationName: "PutAnomalyDetector",
 	}
 }

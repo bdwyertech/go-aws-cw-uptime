@@ -30,9 +30,9 @@ const (
 	AlarmTypeMetricAlarm    AlarmType = "MetricAlarm"
 )
 
-// Values returns all known values for AlarmType. Note that this can be expanded in
-// the future, and so it is only as up to date as the client. The ordering of this
-// slice is not guaranteed to be stable across updates.
+// Values returns all known values for AlarmType. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
 func (AlarmType) Values() []AlarmType {
 	return []AlarmType{
 		"CompositeAlarm",
@@ -106,6 +106,22 @@ func (ComparisonOperator) Values() []ComparisonOperator {
 	}
 }
 
+type EvaluationState string
+
+// Enum values for EvaluationState
+const (
+	EvaluationStatePartialData EvaluationState = "PARTIAL_DATA"
+)
+
+// Values returns all known values for EvaluationState. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (EvaluationState) Values() []EvaluationState {
+	return []EvaluationState{
+		"PARTIAL_DATA",
+	}
+}
+
 type HistoryItemType string
 
 // Enum values for HistoryItemType
@@ -132,15 +148,17 @@ type MetricStreamOutputFormat string
 const (
 	MetricStreamOutputFormatJson            MetricStreamOutputFormat = "json"
 	MetricStreamOutputFormatOpenTelemetry07 MetricStreamOutputFormat = "opentelemetry0.7"
+	MetricStreamOutputFormatOpenTelemetry10 MetricStreamOutputFormat = "opentelemetry1.0"
 )
 
-// Values returns all known values for MetricStreamOutputFormat. Note that this can
-// be expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
+// Values returns all known values for MetricStreamOutputFormat. Note that this
+// can be expanded in the future, and so it is only as up to date as the client.
+// The ordering of this slice is not guaranteed to be stable across updates.
 func (MetricStreamOutputFormat) Values() []MetricStreamOutputFormat {
 	return []MetricStreamOutputFormat{
 		"json",
 		"opentelemetry0.7",
+		"opentelemetry1.0",
 	}
 }
 
@@ -211,9 +229,9 @@ const (
 	StandardUnitNone            StandardUnit = "None"
 )
 
-// Values returns all known values for StandardUnit. Note that this can be expanded
-// in the future, and so it is only as up to date as the client. The ordering of
-// this slice is not guaranteed to be stable across updates.
+// Values returns all known values for StandardUnit. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
 func (StandardUnit) Values() []StandardUnit {
 	return []StandardUnit{
 		"Seconds",
@@ -277,9 +295,9 @@ const (
 	StatisticMaximum     Statistic = "Maximum"
 )
 
-// Values returns all known values for Statistic. Note that this can be expanded in
-// the future, and so it is only as up to date as the client. The ordering of this
-// slice is not guaranteed to be stable across updates.
+// Values returns all known values for Statistic. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
 func (Statistic) Values() []Statistic {
 	return []Statistic{
 		"SampleCount",
@@ -297,6 +315,7 @@ const (
 	StatusCodeComplete      StatusCode = "Complete"
 	StatusCodeInternalError StatusCode = "InternalError"
 	StatusCodePartialData   StatusCode = "PartialData"
+	StatusCodeForbidden     StatusCode = "Forbidden"
 )
 
 // Values returns all known values for StatusCode. Note that this can be expanded
@@ -307,5 +326,6 @@ func (StatusCode) Values() []StatusCode {
 		"Complete",
 		"InternalError",
 		"PartialData",
+		"Forbidden",
 	}
 }

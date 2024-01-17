@@ -5733,7 +5733,7 @@ func awsAwsquery_deserializeDocumentDashboardEntry(v **types.DashboardEntry, dec
 				if err != nil {
 					return err
 				}
-				sv.Size = i64
+				sv.Size = ptr.Int64(i64)
 			}
 
 		default:
@@ -6577,7 +6577,7 @@ func awsAwsquery_deserializeDocumentInsightRule(v **types.InsightRule, decoder s
 				if err != nil {
 					return fmt.Errorf("expected InsightRuleIsManaged to be of type *bool, got %T instead", val)
 				}
-				sv.ManagedRule = xtv
+				sv.ManagedRule = ptr.Bool(xtv)
 			}
 
 		case strings.EqualFold("Name", t.Name.Local):
@@ -8209,6 +8209,19 @@ func awsAwsquery_deserializeDocumentMetricAlarm(v **types.MetricAlarm, decoder s
 				sv.EvaluationPeriods = ptr.Int32(int32(i64))
 			}
 
+		case strings.EqualFold("EvaluationState", t.Name.Local):
+			val, err := decoder.Value()
+			if err != nil {
+				return err
+			}
+			if val == nil {
+				break
+			}
+			{
+				xtv := string(val)
+				sv.EvaluationState = types.EvaluationState(xtv)
+			}
+
 		case strings.EqualFold("ExtendedStatistic", t.Name.Local):
 			val, err := decoder.Value()
 			if err != nil {
@@ -8307,6 +8320,23 @@ func awsAwsquery_deserializeDocumentMetricAlarm(v **types.MetricAlarm, decoder s
 			{
 				xtv := string(val)
 				sv.StateReasonData = ptr.String(xtv)
+			}
+
+		case strings.EqualFold("StateTransitionedTimestamp", t.Name.Local):
+			val, err := decoder.Value()
+			if err != nil {
+				return err
+			}
+			if val == nil {
+				break
+			}
+			{
+				xtv := string(val)
+				t, err := smithytime.ParseDateTime(xtv)
+				if err != nil {
+					return err
+				}
+				sv.StateTransitionedTimestamp = ptr.Time(t)
 			}
 
 		case strings.EqualFold("StateUpdatedTimestamp", t.Name.Local):
@@ -9334,6 +9364,12 @@ func awsAwsquery_deserializeDocumentMetricStreamFilter(v **types.MetricStreamFil
 		originalDecoder := decoder
 		decoder = smithyxml.WrapNodeDecoder(originalDecoder.Decoder, t)
 		switch {
+		case strings.EqualFold("MetricNames", t.Name.Local):
+			nodeDecoder := smithyxml.WrapNodeDecoder(decoder.Decoder, t)
+			if err := awsAwsquery_deserializeDocumentMetricStreamFilterMetricNames(&sv.MetricNames, nodeDecoder); err != nil {
+				return err
+			}
+
 		case strings.EqualFold("Namespace", t.Name.Local):
 			val, err := decoder.Value()
 			if err != nil {
@@ -9361,6 +9397,86 @@ func awsAwsquery_deserializeDocumentMetricStreamFilter(v **types.MetricStreamFil
 	return nil
 }
 
+func awsAwsquery_deserializeDocumentMetricStreamFilterMetricNames(v *[]string, decoder smithyxml.NodeDecoder) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	var sv []string
+	if *v == nil {
+		sv = make([]string, 0)
+	} else {
+		sv = *v
+	}
+
+	originalDecoder := decoder
+	for {
+		t, done, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if done {
+			break
+		}
+		memberDecoder := smithyxml.WrapNodeDecoder(decoder.Decoder, t)
+		decoder = memberDecoder
+		switch {
+		case strings.EqualFold("member", t.Name.Local):
+			var col string
+			val, err := decoder.Value()
+			if err != nil {
+				return err
+			}
+			if val == nil {
+				break
+			}
+			{
+				xtv := string(val)
+				col = xtv
+			}
+			sv = append(sv, col)
+
+		default:
+			err = decoder.Decoder.Skip()
+			if err != nil {
+				return err
+			}
+
+		}
+		decoder = originalDecoder
+	}
+	*v = sv
+	return nil
+}
+
+func awsAwsquery_deserializeDocumentMetricStreamFilterMetricNamesUnwrapped(v *[]string, decoder smithyxml.NodeDecoder) error {
+	var sv []string
+	if *v == nil {
+		sv = make([]string, 0)
+	} else {
+		sv = *v
+	}
+
+	switch {
+	default:
+		var mv string
+		t := decoder.StartEl
+		_ = t
+		val, err := decoder.Value()
+		if err != nil {
+			return err
+		}
+		if val == nil {
+			break
+		}
+		{
+			xtv := string(val)
+			mv = xtv
+		}
+		sv = append(sv, mv)
+	}
+	*v = sv
+	return nil
+}
 func awsAwsquery_deserializeDocumentMetricStreamFilters(v *[]types.MetricStreamFilter, decoder smithyxml.NodeDecoder) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -9804,6 +9920,86 @@ func awsAwsquery_deserializeDocumentMissingRequiredParameterException(v **types.
 	return nil
 }
 
+func awsAwsquery_deserializeDocumentOwningAccounts(v *[]string, decoder smithyxml.NodeDecoder) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	var sv []string
+	if *v == nil {
+		sv = make([]string, 0)
+	} else {
+		sv = *v
+	}
+
+	originalDecoder := decoder
+	for {
+		t, done, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if done {
+			break
+		}
+		memberDecoder := smithyxml.WrapNodeDecoder(decoder.Decoder, t)
+		decoder = memberDecoder
+		switch {
+		case strings.EqualFold("member", t.Name.Local):
+			var col string
+			val, err := decoder.Value()
+			if err != nil {
+				return err
+			}
+			if val == nil {
+				break
+			}
+			{
+				xtv := string(val)
+				col = xtv
+			}
+			sv = append(sv, col)
+
+		default:
+			err = decoder.Decoder.Skip()
+			if err != nil {
+				return err
+			}
+
+		}
+		decoder = originalDecoder
+	}
+	*v = sv
+	return nil
+}
+
+func awsAwsquery_deserializeDocumentOwningAccountsUnwrapped(v *[]string, decoder smithyxml.NodeDecoder) error {
+	var sv []string
+	if *v == nil {
+		sv = make([]string, 0)
+	} else {
+		sv = *v
+	}
+
+	switch {
+	default:
+		var mv string
+		t := decoder.StartEl
+		_ = t
+		val, err := decoder.Value()
+		if err != nil {
+			return err
+		}
+		if val == nil {
+			break
+		}
+		{
+			xtv := string(val)
+			mv = xtv
+		}
+		sv = append(sv, mv)
+	}
+	*v = sv
+	return nil
+}
 func awsAwsquery_deserializeDocumentPartialFailure(v **types.PartialFailure, decoder smithyxml.NodeDecoder) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -11336,6 +11532,22 @@ func awsAwsquery_deserializeOpDocumentGetMetricStreamOutput(v **GetMetricStreamO
 				return err
 			}
 
+		case strings.EqualFold("IncludeLinkedAccountsMetrics", t.Name.Local):
+			val, err := decoder.Value()
+			if err != nil {
+				return err
+			}
+			if val == nil {
+				break
+			}
+			{
+				xtv, err := strconv.ParseBool(string(val))
+				if err != nil {
+					return fmt.Errorf("expected IncludeLinkedAccountsMetrics to be of type *bool, got %T instead", val)
+				}
+				sv.IncludeLinkedAccountsMetrics = ptr.Bool(xtv)
+			}
+
 		case strings.EqualFold("LastUpdateDate", t.Name.Local):
 			val, err := decoder.Value()
 			if err != nil {
@@ -11628,6 +11840,12 @@ func awsAwsquery_deserializeOpDocumentListMetricsOutput(v **ListMetricsOutput, d
 			{
 				xtv := string(val)
 				sv.NextToken = ptr.String(xtv)
+			}
+
+		case strings.EqualFold("OwningAccounts", t.Name.Local):
+			nodeDecoder := smithyxml.WrapNodeDecoder(decoder.Decoder, t)
+			if err := awsAwsquery_deserializeDocumentOwningAccounts(&sv.OwningAccounts, nodeDecoder); err != nil {
+				return err
 			}
 
 		default:

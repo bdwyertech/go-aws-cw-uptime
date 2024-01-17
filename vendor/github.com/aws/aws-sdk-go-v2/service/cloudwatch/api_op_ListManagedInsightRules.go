@@ -12,8 +12,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Returns a list that contains the number of managed Contributor Insights rules in
-// your account.
+// Returns a list that contains the number of managed Contributor Insights rules
+// in your account.
 func (c *Client) ListManagedInsightRules(ctx context.Context, params *ListManagedInsightRulesInput, optFns ...func(*Options)) (*ListManagedInsightRulesOutput, error) {
 	if params == nil {
 		params = &ListManagedInsightRulesInput{}
@@ -31,18 +31,18 @@ func (c *Client) ListManagedInsightRules(ctx context.Context, params *ListManage
 
 type ListManagedInsightRulesInput struct {
 
-	// The ARN of an Amazon Web Services resource that has managed Contributor Insights
-	// rules.
+	// The ARN of an Amazon Web Services resource that has managed Contributor
+	// Insights rules.
 	//
 	// This member is required.
 	ResourceARN *string
 
 	// The maximum number of results to return in one operation. If you omit this
-	// parameter, the default number is used. The default number is 100.
+	// parameter, the default number is used. The default number is 100 .
 	MaxResults *int32
 
-	// Include this value to get the next set of rules if the value was returned by the
-	// previous operation.
+	// Include this value to get the next set of rules if the value was returned by
+	// the previous operation.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -54,8 +54,8 @@ type ListManagedInsightRulesOutput struct {
 	// resource.
 	ManagedRules []types.ManagedRuleDescription
 
-	// Include this value to get the next set of rules if the value was returned by the
-	// previous operation.
+	// Include this value to get the next set of rules if the value was returned by
+	// the previous operation.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -65,12 +65,22 @@ type ListManagedInsightRulesOutput struct {
 }
 
 func (c *Client) addOperationListManagedInsightRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListManagedInsightRules{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpListManagedInsightRules{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListManagedInsightRules"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -91,16 +101,13 @@ func (c *Client) addOperationListManagedInsightRulesMiddlewares(stack *middlewar
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -109,10 +116,16 @@ func (c *Client) addOperationListManagedInsightRulesMiddlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpListManagedInsightRulesValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListManagedInsightRules(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -122,6 +135,9 @@ func (c *Client) addOperationListManagedInsightRulesMiddlewares(stack *middlewar
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -139,7 +155,7 @@ var _ ListManagedInsightRulesAPIClient = (*Client)(nil)
 // ListManagedInsightRules
 type ListManagedInsightRulesPaginatorOptions struct {
 	// The maximum number of results to return in one operation. If you omit this
-	// parameter, the default number is used. The default number is 100.
+	// parameter, the default number is used. The default number is 100 .
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -224,7 +240,6 @@ func newServiceMetadataMiddleware_opListManagedInsightRules(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "monitoring",
 		OperationName: "ListManagedInsightRules",
 	}
 }
